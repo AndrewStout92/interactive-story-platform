@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
 from .models import db, Story, Chapter, Choice, User
 import logging
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, login_required, current_user
 
 # Logging for debugging purposes
 logging.basicConfig(level=logging.DEBUG)
@@ -9,18 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Create a blueprint for organizing routes
 main = Blueprint('main', __name__)
 
-# Initialize Flask-Login for user session management
-login_manager = LoginManager()
-login_manager.login_view = 'main.login'
 
-
-# Define the user loader function required by Flask-Login
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-# Route for handling login
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -34,7 +23,6 @@ def login():
     return render_template('login.html')
 
 
-# Route for handling logout
 @main.route('/logout')
 @login_required
 def logout():
@@ -42,31 +30,23 @@ def logout():
     return redirect(url_for('main.login'))
 
 
-# Home route for basic welcome message
 @main.route('/')
 def home():
     return "Welcome to the Interactive Storytelling Platform!"
 
 
-# Route to render the form for creating a new story
-@main.route('/create_story', methods=['GET'])
+@main.route('/create_story', methods=['GET', 'POST'])
 @login_required
-def create_story_form():
+def create_story():
+    if request.method == 'POST':
+        title = request.form['title']
+        new_story = Story(title=title)
+        db.session.add(new_story)
+        db.session.commit()
+        return redirect(url_for('main.list_stories'))
     return render_template('create_story.html')
 
 
-# Route for creating a new story
-@main.route('/create_story', methods=['POST'])
-@login_required
-def create_story():
-    title = request.form['title']
-    new_story = Story(title=title)
-    db.session.add(new_story)
-    db.session.commit()
-    return redirect(url_for('main.list_stories'))
-
-
-# Route to render the form for creating a new chapter
 @main.route('/story/<int:story_id>/create_chapter', methods=['GET', 'POST'])
 @login_required
 def create_chapter(story_id):
@@ -79,21 +59,18 @@ def create_chapter(story_id):
     return render_template('create_chapter.html', story_id=story_id)
 
 
-# Route for fetching all stories as JSON
 @main.route('/stories/json', methods=['GET'])
 def get_stories():
     stories = Story.query.all()
     return jsonify([{'id': story.id, 'title': story.title} for story in stories])
 
 
-# Route for fetching chapters of a specific story as JSON
 @main.route('/story/<int:story_id>/chapters/json', methods=['GET'])
 def get_chapters(story_id):
     chapters = Chapter.query.filter_by(story_id=story_id).all()
     return jsonify([{'id': chapter.id, 'content': chapter.content} for chapter in chapters])
 
 
-# Route for creating a new choice for a chapter
 @main.route('/choice', methods=['POST'])
 def create_choice():
     data = request.get_json()
@@ -110,18 +87,17 @@ def create_choice():
     return jsonify({'id': new_choice.id, 'choice_text': new_choice.choice_text})
 
 
-# Route for listing stories and rendering the stories template
 @main.route('/stories', methods=['GET'])
 def list_stories():
     stories = Story.query.all()
     return render_template('list_stories.html', stories=stories)
 
 
-# Route for listing chapters of a specific story and rendering the chapters template
 @main.route('/story/<int:story_id>/chapters', methods=['GET'])
 def list_chapters(story_id):
     chapters = Chapter.query.filter_by(story_id=story_id).all()
     return render_template('list_chapters.html', chapters=chapters, story_id=story_id)
+
 
 
 
