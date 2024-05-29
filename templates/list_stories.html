@@ -1,0 +1,16 @@
+<!-- templates/stories.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stories</title>
+</head>
+<body>
+    <h1>Stories</h1>
+    <ul>
+        {% for story in stories %}
+        <li><a href="{{ url_for('main.list_chapters', story_id=story.id) }}">{{ story.title }}</a></li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('main.create_story') }}">Create a New Story</a>
+</body>
+</html>

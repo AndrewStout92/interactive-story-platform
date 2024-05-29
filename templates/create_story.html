@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Story</title>
+</head>
+<body>
+    <h1>Create a New Story</h1>
+    <form method="POST" action="{{ url_for('main.create_story') }}">
+        <label for="title">Story Title:</label>
+        <input type="text" id="title" name="title" required>
+        <button type="submit">Create</button>
+    </form>
+    <a href="{{ url_for('main.list_stories') }}">Back to Stories</a>
+</body>
+</html>

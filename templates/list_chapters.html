@@ -1,0 +1,17 @@
+<!-- templates/chapters.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chapters</title>
+</head>
+<body>
+    <h1>Chapters</h1>
+    <ul>
+        {% for chapter in chapters %}
+        <li>{{ chapter.content }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('main.create_chapter', story_id=story_id) }}">Create a New Chapter</a>
+    <a href="{{ url_for('main.list_stories') }}">Back to Stories</a>
+</body>
+</html>
