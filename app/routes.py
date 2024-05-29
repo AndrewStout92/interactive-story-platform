@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Create a blueprint for organizing routes
 main = Blueprint('main', __name__)
 
+# Route for handling user login
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -21,16 +22,20 @@ def login():
         flash('Invalid username or password')
     return render_template('login.html')
 
+# Route for handling user logout
 @main.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('main.login'))
 
+# Route for the home page
 @main.route('/')
 def home():
     return "Welcome to the Interactive Storytelling Platform!"
 
+
+# Route for creating a new story
 @main.route('/create_story', methods=['GET', 'POST'])
 @login_required
 def create_story():
@@ -42,6 +47,7 @@ def create_story():
         return redirect(url_for('main.list_stories'))
     return render_template('create_story.html')
 
+# Route for creating a new chapter in a story
 @main.route('/story/<int:story_id>/create_chapter', methods=['GET', 'POST'])
 @login_required
 def create_chapter(story_id):
@@ -53,16 +59,20 @@ def create_chapter(story_id):
         return redirect(url_for('main.list_chapters', story_id=story_id))
     return render_template('create_chapter.html', story_id=story_id)
 
+# Route to get all stories in JSON format
 @main.route('/stories/json', methods=['GET'])
 def get_stories():
     stories = Story.query.all()
     return jsonify([{'id': story.id, 'title': story.title} for story in stories])
 
+
+# Route to get all chapters of a specific story in JSON format
 @main.route('/story/<int:story_id>/chapters/json', methods=['GET'])
 def get_chapters(story_id):
     chapters = Chapter.query.filter_by(story_id=story_id).all()
     return jsonify([{'id': chapter.id, 'content': chapter.content} for chapter in chapters])
 
+# Route to create a new choice for a chapter
 @main.route('/choice', methods=['POST'])
 def create_choice():
     data = request.get_json()
@@ -78,11 +88,14 @@ def create_choice():
     db.session.commit()
     return jsonify({'id': new_choice.id, 'choice_text': new_choice.choice_text})
 
+# Route to list all stories
 @main.route('/stories', methods=['GET'])
 def list_stories():
     stories = Story.query.all()
     return render_template('list_stories.html', stories=stories)
 
+
+# Route to list all chapters of a specific story
 @main.route('/story/<int:story_id>/chapters', methods=['GET'])
 def list_chapters(story_id):
     chapters = Chapter.query.filter_by(story_id=story_id).all()
